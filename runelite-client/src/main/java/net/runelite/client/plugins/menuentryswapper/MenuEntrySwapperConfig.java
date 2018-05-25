@@ -243,4 +243,15 @@ public interface MenuEntrySwapperConfig extends Config
 	{
 		return false;
 	}
+
+	@ConfigItem(
+	  position = 19,
+	  keyName = "construction",
+	  name = "Build / Remove",
+	  description = "Swap Build or Remove to left click"
+	)
+	default boolean construction()
+	{
+		return false;
+	}
 }

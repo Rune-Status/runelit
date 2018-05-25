@@ -27,8 +27,12 @@ package net.runelite.client.plugins.menuentryswapper;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
@@ -430,6 +434,14 @@ public class MenuEntrySwapperPlugin extends Plugin
 		{
 			swap("(withdraw-[^A-z,1,5,10])", "(withdraw-1)", target);
 		}
+		else if (config.construction() && target.equals("larder") && (option.equals("search") || option.equals("examine")))
+		{
+			remove(target, "search", "walk here", "examine");
+		}
+		else if (config.construction() && target.equals("larder space") && option.equals("examine"))
+		{
+			remove(target, "walk here", "examine");
+		}
 		else if (config.shiftClickCustomization() && shiftModifier && !option.equals("use"))
 		{
 			Integer customOption = getSwapConfig(itemId);
@@ -550,6 +562,33 @@ public class MenuEntrySwapperPlugin extends Plugin
 			entries[idxB] = entry;
 
 			client.setMenuEntries(entries);
+		}
+	}
+
+	private void remove(String target, String... options)
+	{
+		MenuEntry[] entries = client.getMenuEntries();
+		boolean hasTarget = false;
+		for (MenuEntry entry : entries)
+		{
+			if (Text.removeTags(entry.getTarget()).toLowerCase().equals(target))
+			{
+				hasTarget = true;
+				break;
+			}
+		}
+		if (hasTarget)
+		{
+			List<MenuEntry> validEntries = new ArrayList<>();
+			List<String> opts = Arrays.asList(options);
+			for (MenuEntry entry : entries)
+			{
+				if (!opts.contains(Text.removeTags(entry.getOption()).toLowerCase()))
+				{
+					validEntries.add(entry);
+				}
+			}
+			client.setMenuEntries(validEntries.toArray(new MenuEntry[validEntries.size()]));
 		}
 	}
 
