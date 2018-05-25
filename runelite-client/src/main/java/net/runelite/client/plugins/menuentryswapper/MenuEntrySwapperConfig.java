@@ -137,8 +137,8 @@ public interface MenuEntrySwapperConfig extends Config
 	@ConfigItem(
 		position = 9,
 		keyName = "swapPickpocket",
-		name = "Pickpocket on H.A.M.",
-		description = "Swap Talk-to with Pickpocket on H.A.M members"
+		name = "Pickpocket",
+		description = "Swap Talk-to with Pickpocket"
 	)
 	default boolean swapPickpocket()
 	{
@@ -220,5 +220,27 @@ public interface MenuEntrySwapperConfig extends Config
 	default boolean claimSlime()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+	  position = 17,
+	  keyName = "depositX",
+	  name = "Deposit X",
+	  description = "Swap Deposit-1 with saved Deposit-X amount"
+	)
+	default boolean depositX()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+	  position = 18,
+	  keyName = "withdrawX",
+	  name = "Withdraw X",
+	  description = "Swap Withdraw-1 with saved Withdraw-X amount"
+	)
+	default boolean withdrawX()
+	{
+		return false;
 	}
 }

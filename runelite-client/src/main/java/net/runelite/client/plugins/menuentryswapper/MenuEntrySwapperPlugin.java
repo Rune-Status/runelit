@@ -29,6 +29,8 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,8 +58,8 @@ import net.runelite.client.util.Text;
 import org.apache.commons.lang3.ArrayUtils;
 
 @PluginDescriptor(
-	name = "Menu Entry Swapper",
-	enabledByDefault = false
+  name = "Menu Entry Swapper",
+  enabledByDefault = false
 )
 public class MenuEntrySwapperPlugin extends Plugin
 {
@@ -70,22 +72,22 @@ public class MenuEntrySwapperPlugin extends Plugin
 	private static final String ITEM_KEY_PREFIX = "item_";
 
 	private static final WidgetMenuOption FIXED_INVENTORY_TAB_CONFIGURE = new WidgetMenuOption(CONFIGURE,
-		MENU_TARGET, WidgetInfo.FIXED_VIEWPORT_INVENTORY_TAB);
+																							   MENU_TARGET, WidgetInfo.FIXED_VIEWPORT_INVENTORY_TAB);
 
 	private static final WidgetMenuOption FIXED_INVENTORY_TAB_SAVE = new WidgetMenuOption(SAVE,
-		MENU_TARGET, WidgetInfo.FIXED_VIEWPORT_INVENTORY_TAB);
+																						  MENU_TARGET, WidgetInfo.FIXED_VIEWPORT_INVENTORY_TAB);
 
 	private static final WidgetMenuOption RESIZABLE_INVENTORY_TAB_CONFIGURE = new WidgetMenuOption(CONFIGURE,
-		MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_INVENTORY_TAB);
+																								   MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_INVENTORY_TAB);
 
 	private static final WidgetMenuOption RESIZABLE_INVENTORY_TAB_SAVE = new WidgetMenuOption(SAVE,
-		MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_INVENTORY_TAB);
+																							  MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_INVENTORY_TAB);
 
 	private static final WidgetMenuOption RESIZABLE_BOTTOM_LINE_INVENTORY_TAB_CONFIGURE = new WidgetMenuOption(CONFIGURE,
-		MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
+																											   MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
 
 	private static final WidgetMenuOption RESIZABLE_BOTTOM_LINE_INVENTORY_TAB_SAVE = new WidgetMenuOption(SAVE,
-		MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
+																										  MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
 
 	@Inject
 	private Client client;
@@ -189,8 +191,8 @@ public class MenuEntrySwapperPlugin extends Plugin
 	public void onWidgetMenuOptionClicked(WidgetMenuOptionClicked event)
 	{
 		if (event.getWidget() == WidgetInfo.FIXED_VIEWPORT_INVENTORY_TAB
-			|| event.getWidget() == WidgetInfo.RESIZABLE_VIEWPORT_INVENTORY_TAB
-			|| event.getWidget() == WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB)
+		  || event.getWidget() == WidgetInfo.RESIZABLE_VIEWPORT_INVENTORY_TAB
+		  || event.getWidget() == WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB)
 		{
 			configuringShiftClick = event.getMenuOption().equals(CONFIGURE);
 			refreshShiftClickCustomizationMenus();
@@ -331,7 +333,7 @@ public class MenuEntrySwapperPlugin extends Plugin
 
 		if (option.equals("talk-to"))
 		{
-			if (config.swapPickpocket() && target.contains("h.a.m."))
+			if (config.swapPickpocket())
 			{
 				swap("pickpocket", option, target, true);
 			}
@@ -420,6 +422,14 @@ public class MenuEntrySwapperPlugin extends Plugin
 		{
 			swap("chase", option, target, true);
 		}
+		else if (config.depositX() && option.equals("deposit-1"))
+		{
+			swap("(deposit-[^A-z,1,5,10])", "(deposit-1)", target);
+		}
+		else if (config.withdrawX() && option.equals("withdraw-1"))
+		{
+			swap("(withdraw-[^A-z,1,5,10])", "(withdraw-1)", target);
+		}
 		else if (config.shiftClickCustomization() && shiftModifier && !option.equals("use"))
 		{
 			Integer customOption = getSwapConfig(itemId);
@@ -491,12 +501,47 @@ public class MenuEntrySwapperPlugin extends Plugin
 		return -1;
 	}
 
+	private int searchIndex(MenuEntry[] entries, String regex, String target)
+	{
+		Pattern pattern = Pattern.compile(regex);
+		for (int i = entries.length - 1; i >= 0; i--)
+		{
+			MenuEntry entry = entries[i];
+			String entryOption = Text.removeTags(entry.getOption()).toLowerCase();
+			String entryTarget = Text.removeTags(entry.getTarget()).toLowerCase();
+			Matcher matcher = pattern.matcher(entryOption);
+			if (matcher.matches() && entryTarget.equals(target))
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 	private void swap(String optionA, String optionB, String target, boolean strict)
 	{
 		MenuEntry[] entries = client.getMenuEntries();
 
 		int idxA = searchIndex(entries, optionA, target, strict);
 		int idxB = searchIndex(entries, optionB, target, strict);
+
+		if (idxA >= 0 && idxB >= 0)
+		{
+			MenuEntry entry = entries[idxA];
+			entries[idxA] = entries[idxB];
+			entries[idxB] = entry;
+
+			client.setMenuEntries(entries);
+		}
+	}
+
+	private void swap(String regexA, String regexB, String target)
+	{
+		MenuEntry[] entries = client.getMenuEntries();
+
+		int idxA = searchIndex(entries, regexA, target);
+		int idxB = searchIndex(entries, regexB, target);
 
 		if (idxA >= 0 && idxB >= 0)
 		{
