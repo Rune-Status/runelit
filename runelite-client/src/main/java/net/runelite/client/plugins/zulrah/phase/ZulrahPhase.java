@@ -80,18 +80,18 @@ public class ZulrahPhase
 		return safeLocation;
 	}
 
-	public WorldPoint getZulrahLocalPoint(WorldPoint start)
+	public WorldPoint getZulrahWorldPoint(WorldPoint start)
 	{
 		switch (zulrahLocation)
 		{
 			case SOUTH:
-				return new WorldPoint(start.getX(), start.getY() - 11, start.getPlane());
+				return new WorldPoint(start.getX() + 2, start.getY() - 9, start.getPlane());
 			case EAST:
-				return new WorldPoint(start.getX() + 10, start.getY() - 2, start.getPlane());
+				return new WorldPoint(start.getX() + 12, start.getY(), start.getPlane());
 			case WEST:
-				return new WorldPoint(start.getX() - 10, start.getY() - 2, start.getPlane());
+				return new WorldPoint(start.getX() - 8, start.getY(), start.getPlane());
 		}
-		return start;
+		return new WorldPoint(start.getX() + 2, start.getY() + 2, start.getPlane());
 	}
 
 	public WorldPoint getSafeWorldPoint(WorldPoint start)

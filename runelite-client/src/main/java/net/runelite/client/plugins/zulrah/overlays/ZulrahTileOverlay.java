@@ -37,13 +37,17 @@ import net.runelite.client.plugins.zulrah.ZulrahPlugin;
 import net.runelite.client.plugins.zulrah.phase.ZulrahPhase;
 import net.runelite.client.plugins.zulrah.phase.ZulrahType;
 import net.runelite.client.ui.overlay.Overlay;
+import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.OverlayUtil;
 
 import javax.imageio.ImageIO;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -62,6 +66,7 @@ public class ZulrahTileOverlay extends Overlay
 	ZulrahTileOverlay(Client client, ZulrahPlugin plugin)
 	{
 		setPosition(OverlayPosition.DYNAMIC);
+		setLayer(OverlayLayer.ABOVE_WIDGETS);
 		this.client = client;
 		this.plugin = plugin;
 	}
@@ -83,21 +88,27 @@ public class ZulrahTileOverlay extends Overlay
 		}
 		if (nextPhase == null)
 		{
-			drawSafeLocation(graphics, currentPhase, startPoint, false);
+			drawSafeCanvas(graphics, currentPhase, startPoint, false);
+			drawSafeMinimap(graphics, currentPhase, startPoint);
+			drawZulrahMinimap(graphics, currentPhase, startPoint);
 		}
 		else if (currentPhase.getSafeLocation() == nextPhase.getSafeLocation())
 		{
-			drawSafeLocation(graphics, currentPhase, nextPhase, startPoint);
+			drawSafeCanvas(graphics, currentPhase, nextPhase, startPoint);
+			drawSafeMinimap(graphics, currentPhase, startPoint);
+			drawZulrahMinimap(graphics, currentPhase, startPoint);
 		}
 		else
 		{
-			drawSafeLocation(graphics, currentPhase, startPoint, false);
-			drawSafeLocation(graphics, nextPhase, startPoint, true);
+			drawSafeCanvas(graphics, currentPhase, startPoint, false);
+			drawSafeCanvas(graphics, nextPhase, startPoint, true);
+			drawSafeMinimap(graphics, currentPhase, startPoint);
+			drawZulrahMinimap(graphics, currentPhase, startPoint);
 		}
 		return null;
 	}
 
-	private void drawSafeLocation(Graphics2D graphics, ZulrahPhase phase, WorldPoint start, boolean next)
+	private void drawSafeCanvas(Graphics2D graphics, ZulrahPhase phase, WorldPoint start, boolean next)
 	{
 		Color color = phase.getColor();
 		WorldPoint safe = phase.getSafeWorldPoint(start);
@@ -115,12 +126,12 @@ public class ZulrahTileOverlay extends Overlay
 		int centerX = (int) bounds.getCenterX();
 		int centerY = (int) bounds.getCenterY();
 		graphics.setColor(color);
-		graphics.fillOval(centerX - 10, centerY, 20, 20);
-		if (next)
+		OverlayUtil.renderPolygon(graphics, poly, color);
+		if (next && !phase.isJad())
 		{
 			graphics.setColor(NEXT_COLOR);
 			int strWidth = graphics.getFontMetrics().stringWidth("next");
-			graphics.drawString("next", centerX - (strWidth / 2), centerY - 20);
+			graphics.drawString("next", centerX - (strWidth / 2), centerY);
 		}
 		if (phase.isJad())
 		{
@@ -137,7 +148,7 @@ public class ZulrahTileOverlay extends Overlay
 		}
 	}
 
-	private void drawSafeLocation(Graphics2D graphics, ZulrahPhase current, ZulrahPhase next, WorldPoint start)
+	private void drawSafeCanvas(Graphics2D graphics, ZulrahPhase current, ZulrahPhase next, WorldPoint start)
 	{
 		Color color1 = current.getColor();
 		Color color2 = next.getColor();
@@ -155,13 +166,19 @@ public class ZulrahTileOverlay extends Overlay
 		Rectangle2D bounds = poly.getBounds2D();
 		int centerX = (int) bounds.getCenterX();
 		int centerY = (int) bounds.getCenterY();
-		graphics.setColor(color1);
-		graphics.fillArc(centerX - 10, centerY, 20, 20, -90, 180);
 		graphics.setColor(color2);
-		graphics.fillArc(centerX - 10, centerY, 20, 20, 90, 180);
+		final Stroke originalStroke = graphics.getStroke();
+		graphics.setStroke(new BasicStroke(2));
+		graphics.drawPolygon(poly);
+		graphics.setColor(new Color(color1.getRed(), color1.getGreen(), color1.getBlue(), 50));
+		graphics.fillPolygon(poly);
+		graphics.setStroke(originalStroke);
 		graphics.setColor(NEXT_COLOR);
-		int strWidth = graphics.getFontMetrics().stringWidth("next");
-		graphics.drawString("next", centerX - (strWidth / 2), centerY - 20);
+		if (!next.isJad())
+		{
+			int strWidth = graphics.getFontMetrics().stringWidth("next");
+			graphics.drawString("next", centerX - (strWidth / 2), centerY);
+		}
 		if (current.isJad() || next.isJad())
 		{
 			ZulrahPhase phase = current.isJad() ? current : next;
@@ -175,6 +192,30 @@ public class ZulrahTileOverlay extends Overlay
 					graphics.drawImage(prayerImg, imgPoint.getX(), imgPoint.getY(), null);
 				}
 			}
+		}
+	}
+
+	private void drawSafeMinimap(Graphics2D graphics, ZulrahPhase phase, WorldPoint start)
+	{
+		WorldPoint safe = phase.getSafeWorldPoint(start);
+		Point minimap = worldToMinimap(safe);
+		if (minimap != null)
+		{
+			graphics.setColor(Color.BLACK);
+			graphics.drawLine(minimap.getX(), minimap.getY(), minimap.getX() + 5, minimap.getY() + 5);
+			graphics.drawLine(minimap.getX() + 5, minimap.getY(), minimap.getX(), minimap.getY() + 5);
+			graphics.setColor(Color.WHITE);
+			graphics.drawLine(minimap.getX() - 1, minimap.getY(), minimap.getX() + 4, minimap.getY() + 5);
+			graphics.drawLine(minimap.getX() + 4, minimap.getY(), minimap.getX() - 1, minimap.getY() + 5);
+		}
+	}
+
+	private void drawZulrahMinimap(Graphics2D graphics, ZulrahPhase phase, WorldPoint start)
+	{
+		Point minimap = worldToMinimap(phase.getZulrahWorldPoint(start));
+		if (minimap != null)
+		{
+			OverlayUtil.renderMinimapLocation(graphics, minimap, phase.getColor());
 		}
 	}
 
@@ -211,5 +252,15 @@ public class ZulrahTileOverlay extends Overlay
 			log.debug("Error loading image {}", e);
 		}
 		return image;
+	}
+
+	private Point worldToMinimap(WorldPoint world)
+	{
+		LocalPoint local = LocalPoint.fromWorld(client, world);
+		if (local != null)
+		{
+			return Perspective.worldToMiniMap(client, local.getX(), local.getY());
+		}
+		return null;
 	}
 }
