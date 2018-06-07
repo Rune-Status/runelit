@@ -232,4 +232,39 @@ public interface MenuEntrySwapperConfig extends Config
 	{
 		return true;
 	}
+
+
+	@ConfigItem(
+	  position = 18,
+	  keyName = "depositX",
+	  name = "Deposit X",
+	  description = "Swap Deposit-1 with saved Deposit-X amount"
+	)
+	default boolean depositX()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+	  position = 19,
+	  keyName = "withdrawX",
+	  name = "Withdraw X",
+	  description = "Swap Withdraw-1 with saved Withdraw-X amount"
+	)
+	default boolean withdrawX()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+	  position = 20,
+	  keyName = "construction",
+	  name = "Build / Remove",
+	  description = "Swap Build or Remove to left click"
+	)
+	default boolean construction()
+	{
+		return false;
+	}
+
 }
