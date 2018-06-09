@@ -450,11 +450,11 @@ public class MenuEntrySwapperPlugin extends Plugin
 		}
 		else if (config.depositX() && option.equals("deposit-1"))
 		{
-			swap("(deposit-[^A-z,1,5,10])", "(deposit-1)", target);
+			swap("(deposit-(?!1$|5$|10$)[0-9]*)", "(deposit-1)", target);
 		}
 		else if (config.withdrawX() && option.equals("withdraw-1"))
 		{
-			swap("(withdraw-[^A-z,1,5,10])", "(withdraw-1)", target);
+			swap("(withdraw-(?!1$|5$|10$)[0-9]*)", "(withdraw-1)", target);
 		}
 		else if (config.construction() && target.equals("larder") && (option.equals("search") || option.equals("examine")))
 		{
