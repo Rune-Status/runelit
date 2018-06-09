@@ -344,71 +344,71 @@ public class GroundItemsPlugin extends Plugin
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded event)
 	{
-		if (config.itemHighlightMode() != OVERLAY
-			&& event.getOption().equals("Take")
-			&& event.getType() == MenuAction.GROUND_ITEM_THIRD_OPTION.getId())
+		if (event.getOption().equals("Take") && event.getType() == MenuAction.GROUND_ITEM_THIRD_OPTION.getId())
 		{
 			int itemId = event.getIdentifier();
 			ItemComposition itemComposition = client.getItemDefinition(itemId);
-
 			if (isHidden(itemComposition.getName()))
 			{
-				return;
+				removeMenuEntry(event.getTarget());
 			}
-
-			Region region = client.getRegion();
-			Tile tile = region.getTiles()[client.getPlane()][event.getActionParam0()][event.getActionParam1()];
-			ItemLayer itemLayer = tile.getItemLayer();
-			if (itemLayer == null)
+			else if (config.itemHighlightMode() != OVERLAY)
 			{
-				return;
-			}
-
-			MenuEntry[] menuEntries = client.getMenuEntries();
-			MenuEntry lastEntry = menuEntries[menuEntries.length - 1];
-
-			int quantity = 1;
-			Node current = itemLayer.getBottom();
-			while (current instanceof Item)
-			{
-				Item item = (Item) current;
-				if (item.getId() == itemId)
+				Region region = client.getRegion();
+				Tile tile = region.getTiles()[client.getPlane()][event.getActionParam0()][event.getActionParam1()];
+				ItemLayer itemLayer = tile.getItemLayer();
+				if (itemLayer == null)
 				{
-					quantity = item.getQuantity();
-				}
-				current = current.getNext();
-			}
-
-			ItemPrice itemPrice = getItemPrice(itemComposition);
-			int price = itemPrice == null ? (int)Math.floor(itemComposition.getPrice() * HIGH_ALCHEMY_CONSTANT) : itemPrice.getPrice();
-			int cost = quantity * price;
-			Color color = overlay.getCostColor(cost, isHighlighted(itemComposition.getName()),
-				isHidden(itemComposition.getName()));
-
-			if (!color.equals(config.defaultColor()))
-			{
-				String hexColor = Integer.toHexString(color.getRGB() & 0xFFFFFF);
-				String colTag = "<col=" + hexColor + ">";
-				final MenuHighlightMode mode = config.menuHighlightMode();
-
-				if (mode == BOTH || mode == OPTION)
-				{
-					lastEntry.setOption(colTag + "Take");
+					return;
 				}
 
-				if (mode == BOTH || mode == NAME)
+				MenuEntry[] menuEntries = client.getMenuEntries();
+				MenuEntry lastEntry = menuEntries[menuEntries.length - 1];
+
+				int quantity = 1;
+				Node current = itemLayer.getBottom();
+				while (current instanceof Item)
 				{
-					String target = lastEntry.getTarget().substring(lastEntry.getTarget().indexOf(">") + 1);
-					lastEntry.setTarget(colTag + target);
+					Item item = (Item) current;
+					if (item.getId() == itemId)
+					{
+						quantity = item.getQuantity();
+					}
+					current = current.getNext();
 				}
-			}
 
-			if (config.showMenuItemQuantities() && itemComposition.isStackable() && quantity > 1)
-			{
-				lastEntry.setTarget(lastEntry.getTarget() + " (" + quantity + ")");
-			}
+				ItemPrice itemPrice = getItemPrice(itemComposition);
+				int price = itemPrice == null ? (int) Math.floor(itemComposition.getPrice() * HIGH_ALCHEMY_CONSTANT) : itemPrice.getPrice();
+				int cost = quantity * price;
+				Color color = overlay.getCostColor(cost, isHighlighted(itemComposition.getName()),
+												   isHidden(itemComposition.getName())
+				);
 
-			client.setMenuEntries(menuEntries);
+				if (!color.equals(config.defaultColor()))
+				{
+					String hexColor = Integer.toHexString(color.getRGB() & 0xFFFFFF);
+					String colTag = "<col=" + hexColor + ">";
+					final MenuHighlightMode mode = config.menuHighlightMode();
+
+					if (mode == BOTH || mode == OPTION)
+					{
+						lastEntry.setOption(colTag + "Take");
+					}
+
+					if (mode == BOTH || mode == NAME)
+					{
+						String target = lastEntry.getTarget().substring(lastEntry.getTarget().indexOf(">") + 1);
+						lastEntry.setTarget(colTag + target);
+					}
+				}
+
+				if (config.showMenuItemQuantities() && itemComposition.isStackable() && quantity > 1)
+				{
+					lastEntry.setTarget(lastEntry.getTarget() + " (" + quantity + ")");
+				}
+
+				client.setMenuEntries(menuEntries);
+			}
 		}
 	}
 
@@ -451,5 +451,22 @@ public class GroundItemsPlugin extends Plugin
 		{
 			setHotKeyPressed(false);
 		}
+	}
+
+	private void removeMenuEntry(String target)
+	{
+		MenuEntry[] entries = client.getMenuEntries();
+		List<MenuEntry> result = new ArrayList<>();
+		for (MenuEntry entry : entries)
+		{
+			String entryTarget = entry.getTarget();
+			String entryOption = entry.getOption();
+			if (entryOption.equals("Take") && entryTarget.equals(target))
+			{
+				continue;
+			}
+			result.add(entry);
+		}
+		client.setMenuEntries(result.toArray(new MenuEntry[result.size()]));
 	}
 }
