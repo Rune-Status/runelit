@@ -42,6 +42,7 @@ import net.runelite.client.plugins.zulrah.rotation.ZulrahRotationThree;
 import net.runelite.client.plugins.zulrah.rotation.ZulrahRotationTwo;
 import net.runelite.client.task.Schedule;
 import net.runelite.client.ui.overlay.Overlay;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.QueryRunner;
 
 import java.time.temporal.ChronoUnit;
@@ -61,14 +62,22 @@ public class ZulrahPlugin extends Plugin
 		new ZulrahRotationThree(),
 		new ZulrahRotationFour()
 	  };
+
 	@Inject
 	private Client client;
+
+	@Inject
+	private OverlayManager overlayManager;
+
 	@Inject
 	private ZulrahTileOverlay tileOverlay;
+
 	@Inject
 	private ZulrahRotationOverlay rotationOverlay;
+
 	@Inject
 	private QueryRunner queryRunner;
+
 	private ZulrahInstance instance;
 
 	@Override
@@ -78,9 +87,10 @@ public class ZulrahPlugin extends Plugin
 	}
 
 	@Override
-	public Collection<Overlay> getOverlays()
+	protected void startUp() throws Exception
 	{
-		return Arrays.asList(tileOverlay, rotationOverlay);
+		overlayManager.add(tileOverlay);
+		overlayManager.add(rotationOverlay);
 	}
 
 	@Schedule(
