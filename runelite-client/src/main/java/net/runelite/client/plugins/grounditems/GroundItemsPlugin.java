@@ -36,6 +36,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import static java.lang.Boolean.TRUE;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -432,6 +433,11 @@ public class GroundItemsPlugin extends Plugin
 			if (config.showMenuItemQuantities() && itemComposition.isStackable() && quantity > 1)
 			{
 				lastEntry.setTarget(lastEntry.getTarget() + " (" + quantity + ")");
+			}
+
+			if (hidden != null)
+			{
+				menuEntries = Arrays.copyOf(menuEntries, menuEntries.length - 1);
 			}
 
 			client.setMenuEntries(menuEntries);
