@@ -34,6 +34,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.Overlay;
+import net.runelite.client.ui.overlay.OverlayManager;
 
 import javax.inject.Inject;
 import java.time.Instant;
@@ -46,8 +47,13 @@ import java.util.Map;
 public class ProjectileWarningsPlugin extends Plugin
 {
 	private final Map<Projectile, AOEProjectile> projectiles = new HashMap<>();
+
+	@Inject
+	private OverlayManager overlayManager;
+
 	@Inject
 	ProjectileWarningsOverlay overlay;
+
 	@Inject
 	ProjectileWarningsConfig config;
 
@@ -64,9 +70,9 @@ public class ProjectileWarningsPlugin extends Plugin
 	}
 
 	@Override
-	public Overlay getOverlay()
+	protected void startUp() throws Exception
 	{
-		return overlay;
+		overlayManager.add(overlay);
 	}
 
 	public Map<Projectile, AOEProjectile> getProjectiles()
