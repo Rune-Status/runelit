@@ -28,11 +28,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup(
-  keyName = AntiDragPlugin.CONFIG_GROUP,
-  name = "Anti Drag",
-  description = "Configuration for the anti drag plugin"
-)
+@ConfigGroup(AntiDragPlugin.CONFIG_GROUP)
 public interface AntiDragConfig extends Config
 {
 	@ConfigItem(

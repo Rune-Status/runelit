@@ -28,11 +28,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup(
-  keyName = "projectilewarnings",
-  name = "AoE Projectile Warnings",
-  description = "Configuration for the AoE Projectile Warnings plugin"
-)
+@ConfigGroup("projectilewarnings")
 public interface ProjectileWarningsConfig extends Config
 {
 	@ConfigItem(
