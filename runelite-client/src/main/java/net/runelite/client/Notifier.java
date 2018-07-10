@@ -289,7 +289,7 @@ public class Notifier
 	{
 		if (OSType.getOSType() == OSType.Linux && !Files.exists(notifyIconPath))
 		{
-			try (InputStream stream = Notifier.class.getResourceAsStream("/runelit.png"))
+			try (InputStream stream = Notifier.class.getResourceAsStream("/runelite.png"))
 			{
 				Files.copy(stream, notifyIconPath);
 			}

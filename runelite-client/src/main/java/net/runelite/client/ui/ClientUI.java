@@ -107,7 +107,7 @@ public class ClientUI
 		{
 			synchronized (ImageIO.class)
 			{
-				icon = ImageIO.read(ClientUI.class.getResourceAsStream("/runelit.png"));
+				icon = ImageIO.read(ClientUI.class.getResourceAsStream("/runelite.png"));
 				sidebarOpen = ImageIO.read(ClientUI.class.getResourceAsStream("open.png"));
 				sidebarClose = ImageIO.read(ClientUI.class.getResourceAsStream("close.png"));
 			}
