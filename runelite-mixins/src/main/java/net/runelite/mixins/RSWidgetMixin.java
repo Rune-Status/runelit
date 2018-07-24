@@ -119,6 +119,13 @@ public abstract class RSWidgetMixin implements RSWidget
 			return rsParentId;
 		}
 
+		final int id = getId();
+		if (TO_GROUP(id) == client.getWidgetRoot())
+		{
+			// this is a root widget
+			return -1;
+		}
+
 		int parentId = rl$parentId;
 		if (parentId != -1)
 		{
@@ -130,7 +137,7 @@ public abstract class RSWidgetMixin implements RSWidget
 			// check the parent in the component table
 			HashTable<WidgetNode> componentTable = client.getComponentTable();
 			WidgetNode widgetNode = componentTable.get(parentId);
-			if (widgetNode == null || widgetNode.getId() != TO_GROUP(getId()))
+			if (widgetNode == null || widgetNode.getId() != TO_GROUP(id))
 			{
 				// invalidate parent
 				rl$parentId = -1;
@@ -191,6 +198,11 @@ public abstract class RSWidgetMixin implements RSWidget
 	@Override
 	public boolean isHidden()
 	{
+		if (isSelfHidden())
+		{
+			return true;
+		}
+
 		Widget parent = getParent();
 
 		if (parent == null)
@@ -208,7 +220,7 @@ public abstract class RSWidgetMixin implements RSWidget
 			return true;
 		}
 
-		return isSelfHidden();
+		return false;
 	}
 
 	@Inject
@@ -476,5 +488,63 @@ public abstract class RSWidgetMixin implements RSWidget
 
 		WidgetPositioned widgetPositioned = new WidgetPositioned();
 		client.getCallbacks().postDeferred(widgetPositioned);
+	}
+
+	@Inject
+	@Override
+	public Widget createChild(int index, int type)
+	{
+		RSWidget w = client.createWidget();
+		w.setType(type);
+		w.setParentId(getId());
+		w.setId(getId());
+		w.setIsIf3(true);
+
+		RSWidget[] siblings = getChildren();
+
+		if (index < 0)
+		{
+			if (siblings == null)
+			{
+				index = 0;
+			}
+			else
+			{
+				index = siblings.length;
+			}
+		}
+
+		if (siblings == null)
+		{
+			siblings = new RSWidget[index + 1];
+			setChildren(siblings);
+		}
+		else if (siblings.length <= index)
+		{
+			RSWidget[] newSiblings = new RSWidget[index + 1];
+			System.arraycopy(siblings, 0, newSiblings, 0, siblings.length);
+			siblings = newSiblings;
+			setChildren(siblings);
+		}
+
+		siblings[index] = w;
+		w.setIndex(index);
+
+		return w;
+	}
+
+	@Inject
+	@Override
+	public void revalidate()
+	{
+		client.revalidateWidget(this);
+	}
+
+	@Inject
+	@Override
+	public void revalidateScroll()
+	{
+		client.revalidateWidget(this);
+		client.revalidateWidgetScroll(client.getWidgets()[TO_GROUP(this.getId())], this, false);
 	}
 }
