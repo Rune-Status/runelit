@@ -1,3 +1,6 @@
+# This project is no longer maintained. If you are interested in an up to date extended version of RuneLite, check out [RuneLitePlus](https://runelitepl.us/)
+***
+
 ![](https://github.com/devinfrench/runelite-ext/blob/master/runelite-client/src/main/resources/runelite.png)
 # RuneLite Extended
 
